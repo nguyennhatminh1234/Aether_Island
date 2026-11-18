@@ -169,6 +169,13 @@ class IslandOverlayService : Service() {
         private fun animateTo(target: IslandState, duration: Long = 360L, entrance: Boolean = false) {
             animator?.cancel()
             state = target
+            layoutParams?.let { params ->
+                val targetY = if (target == IslandState.HIDE) -dp(5f).toInt() else 0
+                if (params.y != targetY) {
+                    params.y = targetY
+                    try { windowManager.updateViewLayout(this, params) } catch (_: Exception) { }
+                }
+            }
             val startW = animatedWidth
             val startH = animatedHeight
             val startR = animatedRadius
@@ -206,10 +213,8 @@ class IslandOverlayService : Service() {
             super.onDraw(canvas)
             val centerX = width / 2f
             val left = centerX - animatedWidth / 2f
-            // Draw the upper half beyond the screen edge. The screen clips it,
-            // leaving the Island visually attached to the top edge like a notch.
             val contentTop = dp(2f)
-            bounds.set(left, -animatedRadius, left + animatedWidth, animatedHeight)
+            bounds.set(left, contentTop, left + animatedWidth, contentTop + animatedHeight)
 
             paint.color = android.graphics.Color.BLACK
             paint.style = Paint.Style.FILL

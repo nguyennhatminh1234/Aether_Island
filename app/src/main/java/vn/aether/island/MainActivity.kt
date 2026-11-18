@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,9 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,14 +29,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
+    private val hasOverlayPermission = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hasOverlayPermission.value = Settings.canDrawOverlays(this)
         setContent {
-            val hasOverlay = remember { mutableStateOf(Settings.canDrawOverlays(this)) }
-            DisposableEffect(Unit) {
-                onDispose { }
-            }
-
             MaterialTheme(colorScheme = darkColorScheme(
                 primary = Color(0xFFB8C7FF),
                 background = Color(0xFF090B10),
@@ -73,7 +68,7 @@ class MainActivity : ComponentActivity() {
                                 Text("v0.1 · Island Core", color = Color.White, fontSize = 17.sp)
                                 Spacer(Modifier.height(8.dp))
                                 Text(
-                                    if (hasOverlay.value) "Overlay permission is ready." else "Allow display over other apps to show the Island.",
+                                    if (hasOverlayPermission.value) "Overlay permission is ready." else "Allow display over other apps to show the Island.",
                                     color = Color(0xFF9BA4B5),
                                     fontSize = 13.sp
                                 )
@@ -98,7 +93,7 @@ class MainActivity : ComponentActivity() {
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB8C7FF))
                                 ) {
                                     Text(
-                                        if (hasOverlay.value) "Start Island" else "Grant overlay permission",
+                                        if (hasOverlayPermission.value) "Start Island" else "Grant overlay permission",
                                         color = Color(0xFF101522)
                                     )
                                 }
@@ -129,14 +124,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Recreate the screen so the permission status is refreshed after returning from Settings.
-        window.decorView.post {
-            recreateIfPermissionChanged()
-        }
-    }
-
-    private fun recreateIfPermissionChanged() {
-        // Compose reads the permission state when the activity is created.
-        // Avoid repeated recreation; the Start button also checks permission directly.
+        hasOverlayPermission.value = Settings.canDrawOverlays(this)
     }
 }

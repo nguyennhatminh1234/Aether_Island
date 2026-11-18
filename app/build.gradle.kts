@@ -11,7 +11,9 @@ android {
     defaultConfig {
         applicationId = "vn.aether.island"
         minSdk = 29
-        targetSdk = 35
+        // Keep the initial foreground-service implementation compatible without
+        // Android 14's mandatory typed foreground-service declaration.
+        targetSdk = 32
         versionCode = 1
         versionName = "0.1.0"
     }

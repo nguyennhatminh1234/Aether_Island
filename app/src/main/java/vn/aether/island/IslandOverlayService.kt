@@ -1,11 +1,15 @@
 package vn.aether.island
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.view.Gravity
@@ -19,15 +23,20 @@ import kotlin.math.abs
 
 class IslandOverlayService : Service() {
     companion object {
+        private const val CHANNEL_ID = "aether_island_overlay"
+        private const val NOTIFICATION_ID = 101
         const val ACTION_STOP = "vn.aether.island.STOP"
     }
 
     private lateinit var windowManager: WindowManager
     private var islandView: IslandView? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, buildNotification())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -45,7 +54,7 @@ class IslandOverlayService : Service() {
             islandView = view
             val params = WindowManager.LayoutParams(
                 view.widthPx,
-                view.heightPx,
+                view.currentWindowHeight,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
@@ -55,15 +64,59 @@ class IslandOverlayService : Service() {
                 x = 0
                 y = 0
             }
+            layoutParams = params
             try {
                 windowManager.addView(view, params)
                 view.animateEntrance()
             } catch (_: Exception) {
                 islandView = null
+                layoutParams = null
                 stopSelf()
             }
         }
         return START_NOT_STICKY
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Aether Island",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Keeps the Island overlay available while it is running."
+                setShowBadge(false)
+            }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+    }
+
+    private fun buildNotification(): Notification {
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+        return builder
+            .setSmallIcon(android.R.drawable.ic_menu_view)
+            .setContentTitle("Aether Island is active")
+            .setContentText("Tap Stop Island in the app to close the overlay.")
+            .setOngoing(true)
+            .build()
+    }
+
+    private fun updateOverlayHeight(height: Int) {
+        val view = islandView ?: return
+        val params = layoutParams ?: return
+        if (params.height == height) return
+        params.height = height
+        try {
+            windowManager.updateViewLayout(view, params)
+        } catch (_: Exception) {
+            stopIsland()
+            stopSelf()
+        }
     }
 
     private fun stopIsland() {
@@ -71,6 +124,7 @@ class IslandOverlayService : Service() {
             try { windowManager.removeView(it) } catch (_: Exception) { }
         }
         islandView = null
+        layoutParams = null
     }
 
     override fun onDestroy() {
@@ -96,8 +150,8 @@ class IslandOverlayService : Service() {
         private var moved = false
         private var animator: ValueAnimator? = null
 
-        val widthPx: Int get() = (resources.displayMetrics.widthPixels * 0.72f).toInt()
-        val heightPx: Int get() = dp(150f).toInt()
+        val widthPx: Int get() = dp(320f).toInt()
+        val currentWindowHeight: Int get() = dp(12f).toInt()
 
         init {
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
@@ -125,6 +179,7 @@ class IslandOverlayService : Service() {
                 State.EXPANDED -> dp(142f)
             }
             val endR = endH / 2f
+            updateOverlayHeight(dp(endH / density + 4f).toInt())
             animator = ValueAnimator.ofFloat(0f, 1f).apply {
                 this.duration = duration
                 interpolator = if (target == State.EXPANDED || entrance) OvershootInterpolator(1.15f)

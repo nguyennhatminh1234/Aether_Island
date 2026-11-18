@@ -20,6 +20,7 @@ import android.animation.ValueAnimator
 import android.view.animation.OvershootInterpolator
 import android.view.animation.DecelerateInterpolator
 import kotlin.math.abs
+import kotlin.math.min
 
 class IslandOverlayService : Service() {
     private enum class IslandState { HIDE, COMPACT, EXPANDED }
@@ -84,11 +85,19 @@ class IslandOverlayService : Service() {
             animator?.cancel();state=target
             this@IslandOverlayService.layoutParams?.let{p->val y=if(target==IslandState.HIDE)-dp(5f).toInt() else 0;if(p.y!=y){p.y=y;try{windowManager.updateViewLayout(this,p)}catch(_:Exception){}}}
             val sw=animatedWidth;val sh=animatedHeight;val sr=animatedRadius
-            val ew=when(target){IslandState.HIDE->dp(42f);IslandState.COMPACT->dp(132f);IslandState.EXPANDED->dp(300f)}
+            val ew=when(target){
+                IslandState.HIDE->dp(42f)
+                IslandState.COMPACT->dp(132f)
+                IslandState.EXPANDED->resources.displayMetrics.widthPixels.toFloat()
+            }
             val eh=when(target){IslandState.HIDE->dp(7f);IslandState.COMPACT->dp(38f);IslandState.EXPANDED->dp(142f)}
+            val er=when(target){IslandState.HIDE->dp(4f);IslandState.COMPACT->dp(19f);IslandState.EXPANDED->dp(35f)}
             animator=ValueAnimator.ofFloat(0f,1f).apply{this.duration=duration;interpolator=if(target==IslandState.EXPANDED||entrance)OvershootInterpolator(1.15f)else DecelerateInterpolator()
-                addUpdateListener{val f=it.animatedValue as Float;animatedWidth=sw+(ew-sw)*f;animatedHeight=sh+(eh-sh)*f;animatedRadius=sr+(eh/2f-sr)*f
-                    updateOverlaySize((animatedWidth+dp(6f)).toInt(),(animatedHeight+dp(4f)).toInt());invalidate()};start()}
+                addUpdateListener{val f=it.animatedValue as Float;animatedWidth=min(sw+(ew-sw)*f,ew)
+                    animatedHeight=sh+(eh-sh)*f
+                    animatedRadius=sr+(er-sr)*f
+                    val windowWidth=if(target==IslandState.EXPANDED) resources.displayMetrics.widthPixels else (animatedWidth+dp(6f)).toInt()
+                    updateOverlaySize(windowWidth,(animatedHeight+dp(4f)).toInt());invalidate()};start()}
         }
         private fun activeItems():List<LiveItem>{
             val items=LiveActivityStore.all(this@IslandOverlayService)

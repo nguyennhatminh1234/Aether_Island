@@ -206,8 +206,10 @@ class IslandOverlayService : Service() {
             super.onDraw(canvas)
             val centerX = width / 2f
             val left = centerX - animatedWidth / 2f
-            val top = dp(2f)
-            bounds.set(left, top, left + animatedWidth, top + animatedHeight)
+            // Draw the upper half beyond the screen edge. The screen clips it,
+            // leaving the Island visually attached to the top edge like a notch.
+            val contentTop = dp(2f)
+            bounds.set(left, -animatedRadius, left + animatedWidth, animatedHeight)
 
             paint.color = android.graphics.Color.BLACK
             paint.style = Paint.Style.FILL
@@ -218,31 +220,31 @@ class IslandOverlayService : Service() {
                 paint.textAlign = Paint.Align.LEFT
                 paint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
                 paint.textSize = dp(12f)
-                canvas.drawText("AETHER ISLAND", left + dp(18f), top + dp(19f), paint)
+                canvas.drawText("AETHER ISLAND", left + dp(18f), contentTop + dp(19f), paint)
 
                 paint.color = 0xFFB8C7FF.toInt()
-                canvas.drawCircle(left + dp(19f), top + dp(29f), dp(3f), paint)
+                canvas.drawCircle(left + dp(19f), contentTop + dp(29f), dp(3f), paint)
 
                 paint.color = 0xFFB7C0D0.toInt()
                 paint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                 paint.textSize = dp(10f)
                 canvas.drawText(
                     if (state == IslandState.EXPANDED) "No active activities yet" else "Ready",
-                    left + dp(29f), top + dp(32f), paint
+                    left + dp(29f), contentTop + dp(32f), paint
                 )
 
                 if (state == IslandState.EXPANDED) {
                     paint.color = 0xFF697386.toInt()
                     paint.textSize = dp(9f)
-                    canvas.drawText("Tap to collapse  ·  Swipe up to hide", left + dp(18f), top + dp(55f), paint)
+                    canvas.drawText("Tap to collapse  ·  Swipe up to hide", left + dp(18f), contentTop + dp(55f), paint)
                     paint.color = 0xFF303846.toInt()
                     canvas.drawRoundRect(
-                        left + dp(18f), top + dp(70f), left + animatedWidth - dp(18f), top + dp(71f),
+                        left + dp(18f), contentTop + dp(70f), left + animatedWidth - dp(18f), contentTop + dp(71f),
                         dp(1f), dp(1f), paint
                     )
                     paint.color = 0xFF8F9AAF.toInt()
                     paint.textSize = dp(10f)
-                    canvas.drawText("Island Core  /  v0.1", left + dp(18f), top + dp(91f), paint)
+                    canvas.drawText("Island Core  /  v0.1", left + dp(18f), contentTop + dp(91f), paint)
                 }
             }
         }

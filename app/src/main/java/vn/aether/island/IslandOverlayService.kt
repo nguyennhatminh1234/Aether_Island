@@ -161,6 +161,9 @@ class IslandOverlayService : Service() {
 
         fun animateEntrance() {
             animateTo(State.COMPACT, 520L, true)
+            postDelayed({
+                if (state == State.COMPACT) animateTo(State.HIDE)
+            }, 2600L)
         }
 
         private fun animateTo(target: State, duration: Long = 360L, entrance: Boolean = false) {

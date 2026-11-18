@@ -101,15 +101,16 @@ class IslandOverlayService : Service() {
         return builder
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setContentTitle("Aether Island is active")
-            .setContentText("Tap Stop Island in the app to close the overlay.")
+            .setContentText("Open Aether Island and tap Stop Island to close the overlay.")
             .setOngoing(true)
             .build()
     }
 
-    private fun updateOverlayHeight(height: Int) {
+    private fun updateOverlaySize(width: Int, height: Int) {
         val view = islandView ?: return
         val params = layoutParams ?: return
-        if (params.height == height) return
+        if (params.width == width && params.height == height) return
+        params.width = width
         params.height = height
         try {
             windowManager.updateViewLayout(view, params)
@@ -150,7 +151,7 @@ class IslandOverlayService : Service() {
         private var moved = false
         private var animator: ValueAnimator? = null
 
-        val widthPx: Int get() = dp(320f).toInt()
+        val widthPx: Int get() = dp(48f).toInt()
         val currentWindowHeight: Int get() = dp(12f).toInt()
 
         init {
@@ -179,7 +180,6 @@ class IslandOverlayService : Service() {
                 State.EXPANDED -> dp(142f)
             }
             val endR = endH / 2f
-            updateOverlayHeight(dp(endH / density + 4f).toInt())
             animator = ValueAnimator.ofFloat(0f, 1f).apply {
                 this.duration = duration
                 interpolator = if (target == State.EXPANDED || entrance) OvershootInterpolator(1.15f)
@@ -189,6 +189,10 @@ class IslandOverlayService : Service() {
                     animatedWidth = startW + (endW - startW) * f
                     animatedHeight = startH + (endH - startH) * f
                     animatedRadius = startR + (endR - startR) * f
+                    updateOverlaySize(
+                        (animatedWidth + dp(6f)).toInt(),
+                        (animatedHeight + dp(4f)).toInt()
+                    )
                     invalidate()
                 }
                 start()

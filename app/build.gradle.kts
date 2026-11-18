@@ -7,30 +7,20 @@ plugins {
 android {
     namespace = "vn.aether.island"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "vn.aether.island"
         minSdk = 29
-        // Keep the initial foreground-service implementation compatible without
-        // Android 14's mandatory typed foreground-service declaration.
         targetSdk = 32
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
     }
-
-    buildFeatures {
-        compose = true
-    }
-
+    buildFeatures { compose = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    kotlinOptions { jvmTarget = "17" }
 }
-
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.activity:activity-compose:1.10.0")

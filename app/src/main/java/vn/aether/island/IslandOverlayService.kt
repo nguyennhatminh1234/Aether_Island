@@ -169,7 +169,7 @@ class IslandOverlayService : Service() {
         private fun animateTo(target: IslandState, duration: Long = 360L, entrance: Boolean = false) {
             animator?.cancel()
             state = target
-            layoutParams?.let { params ->
+            this@IslandOverlayService.layoutParams?.let { params ->
                 val targetY = if (target == IslandState.HIDE) -dp(5f).toInt() else 0
                 if (params.y != targetY) {
                     params.y = targetY

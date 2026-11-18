@@ -1,31 +1,22 @@
 # Aether Island
 
-An independent Android Dynamic Island-inspired overlay. Current milestone: **v0.1 — Island Core**.
+Android Dynamic Island-inspired overlay. Current milestone: **v0.2 — Live Activities foundation**.
 
-## Requirements
-- Android 10 (API 29) or newer
-- Permission to display over other apps
-- A persistent foreground-service notification while the Island is running
+## v0.2 included
+- Media session metadata and playback-state detection through Android Notification Access.
+- Local 1-minute timer and stopwatch test activities.
+- Activity stack list in Expanded state, with horizontal swipe to switch the selected activity.
+- Existing Hide / Compact / Expanded interaction retained.
+- No root, Shizuku or Accessibility Service.
+
+## Setup
+1. Grant Display over other apps.
+2. Start Island.
+3. For music metadata, enable Aether Island under Android Notification Access settings.
+4. Start a test timer or stopwatch from the app, then expand Island.
+
+## Not included yet
+Incoming-call detection, headphones/audio-device events, live system volume, charging/battery tiles, and full media transport controls are still planned. This build must be tested on a physical Android 10+ device before being considered device-verified.
 
 ## Build
-The GitHub Actions workflow builds a debug APK on every push to `main` and uploads it as an artifact.
-
-For a local Android Gradle environment:
-
-```bash
-gradle :app:assembleDebug
-```
-
-The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
-
-## v0.1 interactions
-- The Island enters as a compact pill.
-- Tap the pill to expand; tap again to collapse.
-- Swipe upward to hide.
-- Tap the small top element to restore Compact.
-
-No notification access, Accessibility Service, root, or Shizuku is used.
-
-## Current limitations
-- The activity label is a core placeholder; live music, calls, timers, charging, and notifications are not implemented yet.
-- Test on the physical Galaxy Note9 before treating the build as device-verified.
+GitHub Actions builds a debug APK on every push to main.
